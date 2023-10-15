@@ -17,7 +17,7 @@ services.AddScoped<IChildParser, ChildParser>();
 services.AddScoped<IUrlBuilder, UrlBuilder>();
 services.AddScoped<IPageRecipient, PageRecipient>();
 services.AddScoped<ArticleFieldsInitializer>();
-services.AddScoped<ArticleRepository>();
+services.AddScoped<ArticleRepository>(_ => new ArticleRepository(connectionString!, configuration));
 services.AddScoped<DbInitializer>(_ => new DbInitializer(connectionString!, configuration));
 services.AddHttpClient();
 services.AddSingleton<IConfiguration>(configuration);
@@ -32,6 +32,8 @@ await dbInitializer.CreateTables();
 await dbInitializer.CreateGetArticlesByDateRangeProcedure();
 await dbInitializer.CreateGetTopArticlesByKeywordProcedure();
 await dbInitializer.CreateSearchArticlesByTextProcedure();
+await dbInitializer.CreateTableTypesAsync();
+await dbInitializer.CreateInsertArticlesAndAuthorsProcedure();
 
 await executor.Do();
 

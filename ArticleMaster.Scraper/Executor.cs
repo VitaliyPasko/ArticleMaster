@@ -1,6 +1,7 @@
 using ArticleMaster.Scraper.Contracts;
 using ArticleMaster.Scraper.Domain;
 using ArticleMaster.Scraper.Domain.Objects;
+using ArticleMaster.Scraper.Infrastructure;
 using Microsoft.Extensions.Configuration;
 
 namespace ArticleMaster.Scraper;
@@ -12,19 +13,22 @@ public class Executor
     private readonly IConfiguration _configuration;
     private readonly IChildParser _childParser;
     private readonly ArticleFieldsInitializer _articleFieldsInitializer;
+    private readonly ArticleRepository _articleRepository;
 
     public Executor(
         IParentParser parentParser, 
         IUrlBuilder urlBuilder, 
         IConfiguration configuration, 
         IChildParser childParser, 
-        ArticleFieldsInitializer articleFieldsInitializer)
+        ArticleFieldsInitializer articleFieldsInitializer, 
+        ArticleRepository articleRepository)
     {
         _parentParser = parentParser;
         _urlBuilder = urlBuilder;
         _configuration = configuration;
         _childParser = childParser;
         _articleFieldsInitializer = articleFieldsInitializer;
+        _articleRepository = articleRepository;
     }
 
     public async Task Do()
@@ -40,5 +44,7 @@ public class Executor
         Parallel.ForEach(articles, article => _articleFieldsInitializer.SetTitle(article));
         Parallel.ForEach(articles, article => _articleFieldsInitializer.SetDatePublished(article));
         Parallel.ForEach(articles, article => _articleFieldsInitializer.SetAuthorName(article));
+
+        await _articleRepository.CreateAll(articles);
     }
 }
