@@ -102,25 +102,26 @@ public class DbInitializer : DbConnection
                                                         BEGIN
                                                              EXEC('
                                                                 CREATE PROCEDURE GetArticlesByDateRange
-                                                                    @From DATETIME,
-                                                                    @To DATETIME
-                                                                AS
-                                                                BEGIN
-                                                                    SELECT
-                                                                        A.id,
-                                                                        A.title,
-                                                                        A.content,
-                                                                        A.downloaded_from,
-                                                                        A.date_published,
-                                                                        Au.id AS author_id,
-                                                                        Au.author_name
-                                                                    FROM
-                                                                        articles A
-                                                                    INNER JOIN
-                                                                        authors Au ON A.author_Id = Au.Id
-                                                                    WHERE
-                                                                        A.date_published BETWEEN @From AND @To;
-                                                             END;');
+                                                                @From DATETIME = NULL,
+                                                                @To DATETIME = NULL
+                                                            AS
+                                                            BEGIN
+                                                                SELECT
+                                                                    A.id,
+                                                                    A.title,
+                                                                    A.content,
+                                                                    A.downloaded_from,
+                                                                    A.date_published,
+                                                                    Au.id AS author_id,
+                                                                    Au.author_name
+                                                                FROM
+                                                                    articles A
+                                                                INNER JOIN
+                                                                    authors Au ON A.author_Id = Au.Id
+                                                                WHERE
+                                                                    (@From IS NULL OR A.date_published >= @From)
+                                                                    AND (@To IS NULL OR A.date_published <= @To);
+                                                            END;');
                                                         END;
                                                         """);
             await connection.ExecuteAsync(queryStringBuilder.ToString());
@@ -144,30 +145,26 @@ public class DbInitializer : DbConnection
         {
             var queryStringBuilder = new StringBuilder($"""
                                                         USE {DbName};
-                                                        IF NOT EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'GetArticlesByDateRange')
+                                                        IF NOT EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'GetTopWordsInArticles')
                                                         BEGIN 
                                                             EXEC('
-                                                            CREATE PROCEDURE GetTopArticlesByKeyword
-                                                                @Keyword NVARCHAR(255)
-                                                            AS
-                                                            BEGIN
-                                                                SELECT TOP 10
-                                                                    A.id,
-                                                                    A.title,
-                                                                    A.content,
-                                                                    A.downloaded_from,
-                                                                    A.date_published,
-                                                                    Au.id AS author_id,
-                                                                    Au.author_name
-                                                                FROM
-                                                                    articles A
-                                                                INNER JOIN
-                                                                    authors Au ON A.author_id = Au.id
-                                                                WHERE
-                                                                    CONTAINS((A.Title, A.Content), @Keyword)
-                                                                ORDER BY
-                                                                    RANK() OVER(ORDER BY (SELECT NULL)) DESC;
-                                                            END;');
+                                                           CREATE PROCEDURE GetTopWordsInArticles
+                                                        AS
+                                                        BEGIN
+                                                            DECLARE @Keywords TABLE (Keyword NVARCHAR(255))
+                                                        
+                                                            INSERT INTO @Keywords (Keyword)
+                                                            SELECT value
+                                                            FROM string_split(
+                                                                (SELECT STRING_AGG(content, ' ') FROM articles), ' '
+                                                            )
+                                                        
+                                                            SELECT TOP 10 Keyword, COUNT(*) AS Frequency
+                                                            FROM @Keywords
+                                                            WHERE LEN(Keyword) > 3
+                                                            GROUP BY Keyword
+                                                            ORDER BY Frequency DESC
+                                                        END;');
                                                         END;
                                                         """);
             await connection.ExecuteAsync(queryStringBuilder.ToString());
@@ -184,6 +181,32 @@ public class DbInitializer : DbConnection
         }
     }
     
+    [Obsolete("для  nvarchar(max) невозможно добавить индекс")]
+    public async Task CreateIndexes()
+    {
+        var connection = OpenConnection();
+        try
+        {
+            var queryStringBuilder = new StringBuilder($"""
+                                                        USE {DbName};
+                                                        IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Title' AND object_id = OBJECT_ID('articles'))
+                                                        BEGIN
+                                                            CREATE NONCLUSTERED INDEX IX_Title ON articles (title);
+                                                        END;
+                                                        """);
+            await connection.ExecuteAsync(queryStringBuilder.ToString());
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.StackTrace);
+            Console.WriteLine(e.Message);
+            throw;
+        }
+        finally
+        {
+            connection.Close();
+        }
+    }
     public async Task CreateSearchArticlesByTextProcedure()
     {
         var connection = OpenConnection();
@@ -194,65 +217,27 @@ public class DbInitializer : DbConnection
                                                         IF NOT EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'SearchArticlesByText')
                                                         BEGIN 
                                                             EXEC('
-                                                                CREATE PROCEDURE SearchArticlesByText
-                                                                    @Text NVARCHAR(MAX)
-                                                                AS
-                                                                BEGIN
-                                                                    SELECT
-                                                                        A.id,
-                                                                        A.title,
-                                                                        A.content,
-                                                                        A.downloaded_from,
-                                                                        A.date_published,
-                                                                        Au.id AS author_id,
-                                                                        Au.author_name
-                                                                    FROM
-                                                                        articles A
-                                                                    INNER JOIN
-                                                                        authors Au ON A.author_id = Au.id
-                                                                    WHERE
-                                                                        CONTAINS((A.title, A.content), @Text);
-                                                                END;');
+                                                                   CREATE PROCEDURE SearchArticlesByText
+                                                            @Text NVARCHAR(MAX)
+                                                        AS
+                                                        BEGIN
+                                                            SELECT
+                                                                A.id,
+                                                                A.title,
+                                                                A.content,
+                                                                A.downloaded_from,
+                                                                A.date_published,
+                                                                Au.id AS author_id,
+                                                                Au.author_name
+                                                            FROM
+                                                                articles A
+                                                            INNER JOIN
+                                                                authors Au ON A.author_id = Au.id
+                                                            WHERE
+                                                                A.title LIKE ''%'' + @Text + ''%'' OR A.content LIKE ''%'' + @Text + ''%'';
                                                         END;
-                                                        """);
-            await connection.ExecuteAsync(queryStringBuilder.ToString());
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.StackTrace);
-            Console.WriteLine(e.Message);
-            throw;
-        }
-        finally
-        {
-            connection.Close();
-        }
-    }
-    
-    public async Task CreateFullTextSearchCatalogs()
-    {
-        var connection = OpenConnection();
-        try
-        {
-            var queryStringBuilder = new StringBuilder($"""
-                                                        USE {DbName};
-                                                        CREATE FULLTEXT CATALOG EnglishFullTextCatalog AS DEFAULT;
-                                                        
-                                                        CREATE FULLTEXT INDEX ON articles
-                                                        (
-                                                            Title Language 1033,
-                                                            Content Language 1033
-                                                        )
-                                                        KEY INDEX PK_articles;
-                                                        
-                                                        CREATE FULLTEXT CATALOG RussianFullTextCatalog AS DEFAULT;
-                                                        
-                                                        CREATE FULLTEXT INDEX ON articles
-                                                        (
-                                                            Title Language 1049,
-                                                            Content Language 1049
-                                                        )
-                                                        KEY INDEX PK_articles;
+                                                        ');
+                                                        END;
                                                         """);
             await connection.ExecuteAsync(queryStringBuilder.ToString());
         }
