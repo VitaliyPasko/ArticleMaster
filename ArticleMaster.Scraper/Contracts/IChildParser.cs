@@ -4,5 +4,5 @@ namespace ArticleMaster.Scraper.Contracts;
 
 public interface IChildParser
 {
-    Task<List<Article>> ParSeProcessAsync(IEnumerable<Url> articleUrls);
+    Task<List<Article>> ParseProcessAsync(IEnumerable<Url> articleUrls);
 }

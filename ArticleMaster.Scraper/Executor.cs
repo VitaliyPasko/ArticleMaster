@@ -40,11 +40,11 @@ public class Executor
             urlEntity: new UrlEntity(_configuration["UrlParts:EntityNames"]!),
             number)).ToList();
 
-        List<Article> articles = await _childParser.ParSeProcessAsync(childUrls);
+        List<Article> articles = await _childParser.ParseProcessAsync(childUrls);
         Parallel.ForEach(articles, article => _articleFieldsInitializer.SetTitle(article));
         Parallel.ForEach(articles, article => _articleFieldsInitializer.SetDatePublished(article));
         Parallel.ForEach(articles, article => _articleFieldsInitializer.SetAuthorName(article));
 
-        await _articleRepository.CreateAll(articles);
+        await _articleRepository.CreateAllAsync(articles);
     }
 }

@@ -41,6 +41,7 @@ public class DbInitializer : DbConnection
         finally
         {
             connection.Close();
+            connection.Dispose();
         }
     }
 
@@ -57,7 +58,7 @@ public class DbInitializer : DbConnection
                                            EXEC('
                                            BEGIN
                                                CREATE TABLE authors (
-                                                   id INT IDENTITY(1,1) PRIMARY KEY,
+                                                   id NVARCHAR(35) PRIMARY KEY,
                                                    author_name NVARCHAR(255)
                                                );
                                            END;
@@ -65,9 +66,9 @@ public class DbInitializer : DbConnection
                                            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ''articles'')
                                            BEGIN
                                                CREATE TABLE articles (
-                                                   id INT IDENTITY(1,1) PRIMARY KEY,
+                                                   id NVARCHAR(35) PRIMARY KEY,
                                                    title NVARCHAR(255),
-                                                   author_id INT,
+                                                   author_id NVARCHAR(35) ,
                                                    downloaded_from NVARCHAR(255),
                                                    content NVARCHAR(max),
                                                    date_published DATETIME,
@@ -88,6 +89,7 @@ public class DbInitializer : DbConnection
         finally
         {
             connection.Close();
+            connection.Dispose();
         }
     }
 
@@ -135,6 +137,7 @@ public class DbInitializer : DbConnection
         finally
         {
             connection.Close();
+            connection.Dispose();
         }
     }
     
@@ -151,7 +154,7 @@ public class DbInitializer : DbConnection
                                                            CREATE PROCEDURE GetTopWordsInArticles
                                                         AS
                                                         BEGIN
-                                                            DECLARE @Keywords TABLE (Keyword NVARCHAR(255))
+                                                            DECLARE @Keywords TABLE (Keyword NVARCHAR(max))
                                                         
                                                             INSERT INTO @Keywords (Keyword)
                                                             SELECT value
@@ -178,6 +181,7 @@ public class DbInitializer : DbConnection
         finally
         {
             connection.Close();
+            connection.Dispose();
         }
     }
     
@@ -205,6 +209,7 @@ public class DbInitializer : DbConnection
         finally
         {
             connection.Close();
+            connection.Dispose();
         }
     }
     public async Task CreateSearchArticlesByTextProcedure()
@@ -250,6 +255,7 @@ public class DbInitializer : DbConnection
         finally
         {
             connection.Close();
+            connection.Dispose();
         }
     }
     public async Task CreateTableTypesAsync()
@@ -262,8 +268,8 @@ public class DbInitializer : DbConnection
             IF NOT EXISTS (SELECT * FROM sys.types WHERE name = 'ArticleType' AND is_table_type = 1)
             CREATE TYPE ArticleType AS TABLE
             (
-                id INT,
-                author_id INT,
+                id UNIQUEIDENTIFIER ,
+                author_id UNIQUEIDENTIFIER ,
                 date_published DATETIME,
                 downloaded_from NVARCHAR(255),
                 title NVARCHAR(255),
@@ -275,7 +281,7 @@ public class DbInitializer : DbConnection
             IF NOT EXISTS (SELECT * FROM sys.types WHERE name = 'AuthorType' AND is_table_type = 1)
             CREATE TYPE AuthorType AS TABLE
             (
-                id INT,
+                id UNIQUEIDENTIFIER ,
                 author_name NVARCHAR(255)
             );";
 
@@ -291,6 +297,7 @@ public class DbInitializer : DbConnection
         finally
         {
             connection.Close();
+            connection.Dispose();
         }
     }
     
@@ -309,12 +316,13 @@ public class DbInitializer : DbConnection
                 @Authors AuthorType READONLY
             AS
             BEGIN
-                INSERT INTO authors (author_name)
-                SELECT a.author_name
+                INSERT INTO authors (id, author_name)
+                SELECT a.id, a.author_name
                 FROM @Authors a;
             
-                INSERT INTO articles (author_id, date_published, downloaded_from, title, content)
+                INSERT INTO articles (id, author_id, date_published, downloaded_from, title, content)
                 SELECT
+                    a.id,
                     a.author_id,
                     a.date_published,
                     a.downloaded_from,
@@ -335,6 +343,7 @@ public class DbInitializer : DbConnection
         finally
         {
             connection.Close();
+            connection.Dispose();
         }
     }
 }

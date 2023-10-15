@@ -9,7 +9,7 @@ public static class ArticleExtensions
     {
         return new ArticleModel
         {
-            // Id = self.Id,
+            Id = self.Id,
             Title = self.Title ?? string.Empty,
             Content = self.Content  ?? string.Empty,
             DatePublished = self.DatePublished!.Value ,
@@ -22,7 +22,7 @@ public static class ArticleExtensions
     {
         return new AuthorModel
         {
-            // Id = self.Author!.Id,
+            Id = self.Author!.Id,
             Name = self.Author.Name
         };
     }

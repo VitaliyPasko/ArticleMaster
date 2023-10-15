@@ -20,15 +20,15 @@ public class ArticleService : IArticleService
         return models.MapToArticleDto();
     }
 
-    public async Task<IEnumerable<ArticleDto>> GetTopTenAsync()
-    {
-        var models = await _articleRepository.GetTopTenAsync();
-        return models.MapToArticleDto();
-    }
-
     public async Task<IEnumerable<ArticleDto>> GetArticlesByTextAsync(string text)
     {
         var models = await _articleRepository.GetArticlesByTextAsync(text);
         return models.MapToArticleDto();
+    }
+
+    public async Task<IEnumerable<string>> GetTopTenWordsAsync()
+    {
+        var words = await _articleRepository.GetTopTenWordsAsync();
+        return words;
     }
 }

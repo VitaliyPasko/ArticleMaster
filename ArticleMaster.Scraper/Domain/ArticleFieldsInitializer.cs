@@ -54,12 +54,13 @@ public class ArticleFieldsInitializer
 
         if (match.Success)
         {
-            article.Author.Name = match.Groups[1].Value;
+            article.Author!.Name = match.Groups[1].Value;
             Console.WriteLine(article);
         }
         else
         {
             Console.WriteLine("Не удалось найти автора.");
         }
+        article.Content = Regex.Replace(article.Content!, @"<[^>]+>|[\s\r\n]+", " ").Trim();
     }
 }

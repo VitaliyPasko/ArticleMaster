@@ -13,7 +13,7 @@ public class ChildParser : IChildParser
         _pageRecipient = pageRecipient;
     }
 
-    public async Task<List<Article>> ParSeProcessAsync(IEnumerable<Url> articleUrls)
+    public async Task<List<Article>> ParseProcessAsync(IEnumerable<Url> articleUrls)
     {
         var pageInfos = await _pageRecipient
             .PullPagesAsync(articleUrls

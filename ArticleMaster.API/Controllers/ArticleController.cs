@@ -26,7 +26,7 @@ public class ArticleController : Controller
     [HttpGet("topten")]
     public async Task<IActionResult> Get()
     {
-        var articles = await _articleService.GetTopTenAsync();
+        var articles = await _articleService.GetTopTenWordsAsync();
         return Ok(articles);
     }
     

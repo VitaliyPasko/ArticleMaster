@@ -31,21 +31,6 @@ public class ArticleRepository : MsSqlDbConnectionProvider, IArticleRepository
         }
     }
 
-    public async Task<IEnumerable<Article>> GetTopTenAsync()
-    {
-        var connection = OpenConnection();
-        try
-        {
-            var result = await connection.QueryAsync<Article>("GetTopWordsInArticles",
-                commandType: CommandType.StoredProcedure);
-            return result;
-        }
-        finally
-        {
-            connection.Close();
-        }
-    }
-
     public async Task<IEnumerable<Article>> GetArticlesByTextAsync(string text)
     {
         var connection = OpenConnection();
@@ -61,6 +46,23 @@ public class ArticleRepository : MsSqlDbConnectionProvider, IArticleRepository
         finally
         {
             connection.Close();
+            connection.Dispose();
+        }
+    }
+
+    public async Task<IEnumerable<string>> GetTopTenWordsAsync()
+    {
+        var connection = OpenConnection();
+        try
+        {
+            var result = await connection.QueryAsync<string>("GetTopWordsInArticles",
+                commandType: CommandType.StoredProcedure);
+            return result;
+        }
+        finally
+        {
+            connection.Close();
+            connection.Dispose();
         }
     }
 }
