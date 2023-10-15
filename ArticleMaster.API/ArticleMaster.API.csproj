@@ -13,4 +13,13 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ArticleMaster.Application\ArticleMaster.Application.csproj" />
+      <ProjectReference Include="..\ArticleMaster.Persistence\ArticleMaster.Persistence.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
+    </ItemGroup>
+
 </Project>

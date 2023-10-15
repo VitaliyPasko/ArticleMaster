@@ -8,8 +8,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastru
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{373E8A28-C537-4E61-A7E5-CC5F2978758D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A984D7F2-9B91-43E7-B8E6-3B8480E1EC0B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArticleMaster.Application", "ArticleMaster.Application\ArticleMaster.Application.csproj", "{3C551B63-F87A-4E78-A085-1F4AFDB18FB3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArticleMaster.Persistence", "ArticleMaster.Persistence\ArticleMaster.Persistence.csproj", "{BC13DFEE-28C8-4650-96BA-EE8F52EC7383}"
