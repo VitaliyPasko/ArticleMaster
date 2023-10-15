@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
-using ArticleMaster.Domain;
 using ArticleMaster.Scraper.Contracts;
+using ArticleMaster.Scraper.Domain;
 using Microsoft.Extensions.Configuration;
 
 namespace ArticleMaster.Scraper;
@@ -21,47 +21,35 @@ public class ParentParser : IParentParser
 
     public async Task<IEnumerable<string>> GetArticleNumbersAsync()
     {
-        var tasks = new List<Task<string>>();
-        Parallel.ForEach(GetParentUrlCollection(), u =>
-        {
-            tasks.Add(_pageRecipient.PullPageAsync(u.UrlString));
-        });
-
-        await Task.WhenAll(tasks);
-
-        return GetNumberOfArticleCollection(tasks);
+        var pageInfos = await _pageRecipient.PullPagesAsync(GetParentUrlCollection());
+        return GetNumberOfArticleCollection(pageInfos);
     }
 
-    private IEnumerable<Url> GetParentUrlCollection()
+    private IEnumerable<PageInfo> GetParentUrlCollection()
     {
         for (int i = 1; i <= int.Parse(_configuration.GetSection("PageOfArticlesCount").Value?? "2"); i++)
-            yield return _urlBuilder.BuildUrl(
-                domain: new Domain(_configuration["UrlParts:Domain"]!), 
-                lang: new Lang(_configuration["UrlParts:Lang"]!), 
-                entity: new Entity(_configuration["UrlParts:EntityNames"]!), 
-                "page" + i);
+            yield return new PageInfo{ Url = _urlBuilder.BuildUrl(
+                urlDomain: new UrlDomain(_configuration["UrlParts:Domain"]!), 
+                urlLang: new UrlLang(_configuration["UrlParts:Lang"]!), 
+                urlEntity: new UrlEntity(_configuration["UrlParts:EntityNames"]!), 
+                "page" + i)};
     }
-
-    private IEnumerable<string> GetNumberOfArticleCollection(IEnumerable<Task<string>> completedTasks)
+    
+    private IEnumerable<string> GetNumberOfArticleCollection(IEnumerable<PageInfo> pageInfos)
     {
         var subUrls = new ConcurrentDictionary<string, string>();
 
-        Parallel.ForEach(completedTasks, completedTask =>
+        Parallel.ForEach(pageInfos, pageInfo =>
         {
             var pattern = _configuration.GetSection("ChildUrlsPatternMatching").Value ?? @"/articles/(\d+)/";
-            if (completedTask.IsCompletedSuccessfully)
             {
-                if (string.IsNullOrEmpty(completedTask.Result))
-                    return;
-                MatchCollection matches = Regex.Matches(completedTask.Result, pattern);
+                MatchCollection matches = Regex.Matches(pageInfo.HtmlPage?.ToString() ?? string.Empty, pattern);
                 Parallel.ForEach(matches, match =>
                 {
                     string result = match.Groups[1].Value;
                     subUrls.TryAdd(result, string.Empty);
                 });
             }
-            else
-                Console.WriteLine("Запрос не удался: {0}", completedTask.Exception);
         });
         
         return subUrls.Select(x => x.Key);
