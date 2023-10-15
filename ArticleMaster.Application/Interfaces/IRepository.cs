@@ -1,6 +1,6 @@
 namespace ArticleMaster.Application.Interfaces;
 
-public interface IRepository
+public interface IRepository<T>
 {
-    
+    Task Create(T entity);
 }

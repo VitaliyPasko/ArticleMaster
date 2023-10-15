@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using ArticleMaster.Scraper.Contracts;
-using ArticleMaster.Scraper.Domain;
+using ArticleMaster.Scraper.Domain.Objects;
 using Microsoft.Extensions.Configuration;
 
-namespace ArticleMaster.Scraper;
+namespace ArticleMaster.Scraper.Domain;
 
 public class ParentParser : IParentParser
 {

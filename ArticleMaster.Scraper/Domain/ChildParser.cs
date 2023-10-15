@@ -1,8 +1,8 @@
 using ArticleMaster.Scraper.Contracts;
-using ArticleMaster.Scraper.Domain;
-using Article = ArticleMaster.Scraper.Domain.Article;
+using ArticleMaster.Scraper.Domain.Objects;
+using Article = ArticleMaster.Scraper.Domain.Objects.Article;
 
-namespace ArticleMaster.Scraper;
+namespace ArticleMaster.Scraper.Domain;
 
 public class ChildParser : IChildParser
 {

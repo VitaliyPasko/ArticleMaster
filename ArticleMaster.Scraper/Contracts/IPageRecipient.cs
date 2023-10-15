@@ -1,3 +1,5 @@
+using ArticleMaster.Scraper.Domain;
+
 namespace ArticleMaster.Scraper.Contracts;
 
 public interface IPageRecipient

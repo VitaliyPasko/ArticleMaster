@@ -1,4 +1,4 @@
-using ArticleMaster.Scraper.Domain;
+using ArticleMaster.Scraper.Domain.Objects;
 
 namespace ArticleMaster.Scraper.Contracts;
 

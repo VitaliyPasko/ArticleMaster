@@ -1,7 +1,7 @@
 using System.Text;
-using ArticleMaster.Scraper.Domain;
+using ArticleMaster.Scraper.Domain.Objects;
 
-namespace ArticleMaster.Scraper;
+namespace ArticleMaster.Scraper.Domain;
 
 public class PageInfo
 {

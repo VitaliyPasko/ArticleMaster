@@ -1,18 +1,21 @@
 ﻿using System.Text;
-using ArticleMaster.Scraper;
 using ArticleMaster.Scraper.Contracts;
 using ArticleMaster.Scraper.Domain;
+using ArticleMaster.Scraper.Domain.Objects;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-var databaseName = "articledb";
-var connectionString = $"Server=localhost;Database=master;User Id=sa;Password=_strongPassword01;TrustServerCertificate=true;";
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json")
+    .Build();
+const string databaseName = "articledb";
+var connectionString = configuration.GetConnectionString("MsSql");
 
 await using (var connection = new SqlConnection(connectionString))
 {
-
     connection.Open();
 
     const string checkDatabaseQuery = "SELECT COUNT(*) FROM sys.databases WHERE name = @databaseName";
@@ -55,10 +58,7 @@ await using (var connection = new SqlConnection(connectionString))
                                """);
     connection.Execute(queryStringBuilder.ToString());
 }
-var configuration = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json")
-    .Build();
+
 var services = new ServiceCollection();
 services.AddScoped<IParentParser, ParentParser>();
 services.AddScoped<IChildParser, ChildParser>();
@@ -82,9 +82,10 @@ var childUrls = articleNumbers.Select(number => urlBuilder.BuildUrl(
     number)).ToList();
 
 List<Article> articles = await childParser.ParSeProcessAsync(childUrls);
-//
-articles.ForEach(articleFieldsInitializer.SetTitle);
-
+Parallel.ForEach(articles, article => articleFieldsInitializer.SetTitle(article));
+Parallel.ForEach(articles, article => articleFieldsInitializer.SetDatePublished(article));
+Parallel.ForEach(articles, article => articleFieldsInitializer.SetAuthorName(article));
+Console.WriteLine(articles.First());
 
 
 

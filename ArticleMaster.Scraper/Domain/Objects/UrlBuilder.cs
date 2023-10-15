@@ -1,6 +1,6 @@
 using ArticleMaster.Scraper.Contracts;
 
-namespace ArticleMaster.Scraper.Domain;
+namespace ArticleMaster.Scraper.Domain.Objects;
 
 public class UrlBuilder : IUrlBuilder
 {
