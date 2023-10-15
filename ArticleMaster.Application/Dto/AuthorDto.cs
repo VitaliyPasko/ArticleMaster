@@ -4,6 +4,6 @@ namespace ArticleMaster.Application.Dto;
 
 public class AuthorDto
 {
-    [JsonPropertyName("id")] public int Id { get; set; }
-    [JsonPropertyName("authorName")] public string AuthorName { get; set; } = null!;
+    [JsonPropertyName("id")] public required int Id { get; set; }
+    [JsonPropertyName("authorName")] public required string AuthorName { get; set; } = null!;
 }

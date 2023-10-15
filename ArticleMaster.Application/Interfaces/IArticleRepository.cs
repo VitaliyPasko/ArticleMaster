@@ -4,7 +4,7 @@ namespace ArticleMaster.Application.Interfaces;
 
 public interface IArticleRepository :  IRepository<Article>
 {
-    Task<IEnumerable<Article>> GetArticlesBetweenDates(DateTime? from, DateTime? to);
-    Task<IEnumerable<Article>> GetTopTenArticlesByWord();
-    Task<IEnumerable<Article>> GetArticlesByText(string text);
+    Task<IEnumerable<Article>> GetArticlesBetweenDatesAsync(DateTime? from, DateTime? to);
+    Task<IEnumerable<Article>> GetTopTenAsync();
+    Task<IEnumerable<Article>> GetArticlesByTextAsync(string text);
 }

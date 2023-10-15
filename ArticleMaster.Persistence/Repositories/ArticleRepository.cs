@@ -12,7 +12,7 @@ public class ArticleRepository : MsSqlDbConnectionProvider, IArticleRepository
         
     }
 
-    public async Task<IEnumerable<Article>> GetArticlesBetweenDates(DateTime? from, DateTime? to)
+    public async Task<IEnumerable<Article>> GetArticlesBetweenDatesAsync(DateTime? from, DateTime? to)
     {
         var connection = OpenConnection();
         try
@@ -31,7 +31,7 @@ public class ArticleRepository : MsSqlDbConnectionProvider, IArticleRepository
         }
     }
 
-    public async Task<IEnumerable<Article>> GetTopTenArticlesByWord()
+    public async Task<IEnumerable<Article>> GetTopTenAsync()
     {
         var connection = OpenConnection();
         try
@@ -46,7 +46,7 @@ public class ArticleRepository : MsSqlDbConnectionProvider, IArticleRepository
         }
     }
 
-    public async Task<IEnumerable<Article>> GetArticlesByText(string text)
+    public async Task<IEnumerable<Article>> GetArticlesByTextAsync(string text)
     {
         var connection = OpenConnection();
         try
