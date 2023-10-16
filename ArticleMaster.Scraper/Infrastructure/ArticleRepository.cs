@@ -22,10 +22,10 @@ public class ArticleRepository : DbConnection
             IEnumerable<ArticleModel> articles = entities.Select(article => article.MapToArticleModel());
             IEnumerable<AuthorModel> authors = entities.Select(article => article.ExtractAuthorModel());
             await connection.ExecuteAsync($"USE {_configuration.GetSection("DbName").Value}; " +
-                                          $"INSERT INTO authors (id, author_name) " +
+                                          $"INSERT INTO authors (Id, AuthorName) " +
                                           $"VALUES(@Id, @Name)", authors);
             await connection.ExecuteAsync($"USE {_configuration.GetSection("DbName").Value}; " +
-                                          $"INSERT INTO articles (id, author_id, date_published, downloaded_from, title, content) " +
+                                          $"INSERT INTO articles (Id, AuthorId, DatePublished, DownloadedFrom, Title, Content) " +
                                           $"VALUES(@Id, @AuthorId, @DatePublished, @DownloadedFrom, @Title, @Content)", articles);
         }
         finally

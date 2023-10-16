@@ -1,8 +1,10 @@
-﻿using ArticleMaster.Scraper;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using ArticleMaster.Scraper;
 using ArticleMaster.Scraper.Contracts;
 using ArticleMaster.Scraper.Domain;
 using ArticleMaster.Scraper.Domain.Objects;
 using ArticleMaster.Scraper.Infrastructure;
+using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +12,7 @@ var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json")
     .Build();
+
 var connectionString = configuration.GetConnectionString("MsSql");
 var services = new ServiceCollection();
 services.AddScoped<IParentParser, ParentParser>();

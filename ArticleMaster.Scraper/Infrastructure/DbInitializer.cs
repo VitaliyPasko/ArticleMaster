@@ -58,21 +58,21 @@ public class DbInitializer : DbConnection
                                            EXEC('
                                            BEGIN
                                                CREATE TABLE authors (
-                                                   id NVARCHAR(35) PRIMARY KEY,
-                                                   author_name NVARCHAR(255)
+                                                   Id NVARCHAR(40) PRIMARY KEY,
+                                                   AuthorName NVARCHAR(255)
                                                );
                                            END;
                                        
                                            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ''articles'')
                                            BEGIN
                                                CREATE TABLE articles (
-                                                   id NVARCHAR(35) PRIMARY KEY,
-                                                   title NVARCHAR(255),
-                                                   author_id NVARCHAR(35) ,
-                                                   downloaded_from NVARCHAR(255),
-                                                   content NVARCHAR(max),
-                                                   date_published DATETIME,
-                                                   FOREIGN KEY (author_id) REFERENCES authors(id)
+                                                   Id NVARCHAR(40) PRIMARY KEY,
+                                                   Title NVARCHAR(255),
+                                                   AuthorId NVARCHAR(40) ,
+                                                   DownloadedFrom NVARCHAR(255),
+                                                   Content NVARCHAR(max),
+                                                   DatePublished DATETIME,
+                                                   FOREIGN KEY (AuthorId) REFERENCES authors(Id)
                                                );
                                            END;')
                                        END;
@@ -109,20 +109,20 @@ public class DbInitializer : DbConnection
                                                             AS
                                                             BEGIN
                                                                 SELECT
-                                                                    A.id,
-                                                                    A.title,
-                                                                    A.content,
-                                                                    A.downloaded_from,
-                                                                    A.date_published,
-                                                                    Au.id AS author_id,
-                                                                    Au.author_name
+                                                                    A.Id,
+                                                                    A.Title,
+                                                                    A.Content,
+                                                                    A.DownloadedFrom,
+                                                                    A.DatePublished,
+                                                                    Au.Id AS AuthorId,
+                                                                    Au.AuthorName
                                                                 FROM
                                                                     articles A
                                                                 INNER JOIN
-                                                                    authors Au ON A.author_Id = Au.Id
+                                                                    authors Au ON A.AuthorId = Au.Id
                                                                 WHERE
-                                                                    (@From IS NULL OR A.date_published >= @From)
-                                                                    AND (@To IS NULL OR A.date_published <= @To);
+                                                                    (@From IS NULL OR A.DatePublished >= @From)
+                                                                    AND (@To IS NULL OR A.DatePublished <= @To);
                                                             END;');
                                                         END;
                                                         """);
@@ -195,7 +195,7 @@ public class DbInitializer : DbConnection
                                                         USE {_dbName};
                                                         IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Title' AND object_id = OBJECT_ID('articles'))
                                                         BEGIN
-                                                            CREATE NONCLUSTERED INDEX IX_Title ON articles (title);
+                                                            CREATE NONCLUSTERED INDEX IX_Title ON articles (Title);
                                                         END;
                                                         """);
             await connection.ExecuteAsync(queryStringBuilder.ToString());
@@ -227,19 +227,19 @@ public class DbInitializer : DbConnection
                                                         AS
                                                         BEGIN
                                                             SELECT
-                                                                A.id,
-                                                                A.title,
-                                                                A.content,
-                                                                A.downloaded_from,
-                                                                A.date_published,
-                                                                Au.id AS author_id,
-                                                                Au.author_name
+                                                                A.Id,
+                                                                A.Title,
+                                                                A.Content,
+                                                                A.DownloadedFrom,
+                                                                A.DatePublished,
+                                                                Au.Id AS AuthorId,
+                                                                Au.AuthorName
                                                             FROM
                                                                 articles A
                                                             INNER JOIN
-                                                                authors Au ON A.author_id = Au.id
+                                                                authors Au ON A.AuthorId = Au.Id
                                                             WHERE
-                                                                A.title LIKE ''%'' + @Text + ''%'' OR A.content LIKE ''%'' + @Text + ''%'';
+                                                                A.title LIKE ''%'' + @Text + ''%'' OR A.Content LIKE ''%'' + @Text + ''%'';
                                                         END;
                                                         ');
                                                         END;
@@ -264,26 +264,26 @@ public class DbInitializer : DbConnection
         try
         {
             var checkArticleTypeQuery = $@"
-            USE {_dbName};
-            IF NOT EXISTS (SELECT * FROM sys.types WHERE name = 'ArticleType' AND is_table_type = 1)
-            CREATE TYPE ArticleType AS TABLE
-            (
-                id UNIQUEIDENTIFIER ,
-                author_id UNIQUEIDENTIFIER ,
-                date_published DATETIME,
-                downloaded_from NVARCHAR(255),
-                title NVARCHAR(255),
-                content NVARCHAR(MAX)
-            );";
-        
-            var checkAuthorTypeQuery = $@"
-            USE {_dbName};
-            IF NOT EXISTS (SELECT * FROM sys.types WHERE name = 'AuthorType' AND is_table_type = 1)
-            CREATE TYPE AuthorType AS TABLE
-            (
-                id UNIQUEIDENTIFIER ,
-                author_name NVARCHAR(255)
-            );";
+                                    USE {_dbName};
+                                    IF NOT EXISTS (SELECT * FROM sys.types WHERE name = 'ArticleType' AND is_table_type = 1)
+                                    CREATE TYPE ArticleType AS TABLE
+                                    (
+                                        Id UNIQUEIDENTIFIER ,
+                                        AuthorId UNIQUEIDENTIFIER ,
+                                        DatePublished DATETIME,
+                                        DownloadedFrom NVARCHAR(255),
+                                        Title NVARCHAR(255),
+                                        Content NVARCHAR(MAX)
+                                    );";
+                                
+                                    var checkAuthorTypeQuery = $@"
+                                    USE {_dbName};
+                                    IF NOT EXISTS (SELECT * FROM sys.types WHERE name = 'AuthorType' AND is_table_type = 1)
+                                    CREATE TYPE AuthorType AS TABLE
+                                    (
+                                        Id UNIQUEIDENTIFIER ,
+                                        AuthorName NVARCHAR(255)
+                                    );";
 
             await connection.ExecuteAsync(checkArticleTypeQuery);
             await connection.ExecuteAsync(checkAuthorTypeQuery);
@@ -307,31 +307,31 @@ public class DbInitializer : DbConnection
         try
         {
             var queryStringBuilder = new StringBuilder($"""
-            USE {_dbName};
-            IF NOT EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'InsertArticlesAndAuthors')
-            BEGIN
-                EXEC('
-                CREATE PROCEDURE InsertArticlesAndAuthors
-                @Articles ArticleType READONLY,
-                @Authors AuthorType READONLY
-            AS
-            BEGIN
-                INSERT INTO authors (id, author_name)
-                SELECT a.id, a.author_name
-                FROM @Authors a;
-            
-                INSERT INTO articles (id, author_id, date_published, downloaded_from, title, content)
-                SELECT
-                    a.id,
-                    a.author_id,
-                    a.date_published,
-                    a.downloaded_from,
-                    a.title,
-                    a.content
-                FROM @Articles a;
-            END;');
-            END;
-            """);
+                                USE {_dbName};
+                                IF NOT EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'InsertArticlesAndAuthors')
+                                BEGIN
+                                    EXEC('
+                                    CREATE PROCEDURE InsertArticlesAndAuthors
+                                    @Articles ArticleType READONLY,
+                                    @Authors AuthorType READONLY
+                                AS
+                                BEGIN
+                                    INSERT INTO authors (Id, AuthorName)
+                                    SELECT a.Id, a.AuthorName
+                                    FROM @Authors a;
+                                
+                                    INSERT INTO articles (Id, AuthorId, DatePublished, DownloadedFrom, Title, Content)
+                                    SELECT
+                                        a.Id,
+                                        a.AuthorId,
+                                        a.DatePublished,
+                                        a.DownloadedFrom,
+                                        a.Title,
+                                        a.Content
+                                    FROM @Articles a;
+                                END;');
+                                END;
+                                """);
             await connection.ExecuteAsync(queryStringBuilder.ToString());
         }
         catch (Exception e)
