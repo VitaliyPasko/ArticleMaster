@@ -4,7 +4,7 @@ namespace ArticleMaster.Application.Dto;
 
 public class ArticleDto
 {
-    [JsonPropertyName("id")] public required Guid Id { get; set; }
+    [JsonPropertyName("id")] public required string Id { get; set; }
     [JsonPropertyName("datePublished")] public required DateTime DatePublished { get; set; }
     [JsonPropertyName("downloadedFrom")] public required string DownloadedFrom { get; set; } = null!;
     [JsonPropertyName("title")] public required string Title { get; set; } = null!;
